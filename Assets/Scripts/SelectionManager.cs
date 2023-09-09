@@ -25,8 +25,12 @@ public class SelectionManager : MonoBehaviour
 
     public GameObject selectionScreen;
 
+    private float InitialTime;
+
     //public List<CalculateTime> storeData = new List<CalculateTime>();
-    public List<StoreData> data = new List<StoreData>();
+   // public List<StoreData> data = new List<StoreData>();
+
+    public SessionData sessionData;
     private void Awake()
     {
         if (Instance == null)
@@ -37,6 +41,11 @@ public class SelectionManager : MonoBehaviour
         {
             Destroy(this);
         }
+    }
+
+    private void Start()
+    {
+        sessionData.InitialTime = Time.time;
     }
 
     private void FindObj()
@@ -144,10 +153,11 @@ public class SelectionManager : MonoBehaviour
     }
     public void ExitApplication()
     {
-        string json = JsonConvert.SerializeObject(data);
-        
-       
-        string filePath = Path.Combine(Application.persistentDataPath, "myData.json");
+        sessionData.TotalDuration = Time.time - sessionData.InitialTime;
+        string json = JsonConvert.SerializeObject(sessionData);
+        string uniqueFilename = "Time_Date" + DateTime.Now.ToString("HH_mm_ss") + ".json";
+
+        string filePath = Path.Combine(Application.persistentDataPath, uniqueFilename);
         System.IO.File.WriteAllText(filePath, json);
         Application.Quit(); 
     }
@@ -156,19 +166,16 @@ public class SelectionManager : MonoBehaviour
     public void SaveData()
     {
 
-        if (data.Count == 0)
+        if (sessionData.data.Count == 0)
         {
             Debug.Log("1111");
-
-
-
             CalculateTime b = GameObject.FindObjectOfType<CalculateTime>();
             if (b != null)
             {
                 Debug.Log("222");
                 StoreData a = new StoreData(b.name, b.startTime, b.totalTime);
 
-                data.Add(a);
+                sessionData.data.Add(a);
             }
 
         }
@@ -177,20 +184,20 @@ public class SelectionManager : MonoBehaviour
             Debug.Log("333");
             CalculateTime b = GameObject.FindObjectOfType<CalculateTime>();
 
-            for (int i = 0; i < data.Count; i++)
+            for (int i = 0; i < sessionData.data.Count; i++)
             {
                 
-                if (data[i].name == b.name)
+                if (sessionData.data[i].name == b.name)
                 {
                     Debug.Log("444");
-                    data[i].totalTime += b.totalTime;
+                    sessionData.data[i].totalTime += b.totalTime;
                     break;
                 }
                 else
                 {
                     Debug.Log("5555");
                     StoreData a = new StoreData(b.name, b.startTime, b.totalTime);
-                    data.Add(a);
+                    sessionData.data.Add(a);
                     break;
                 }
             }
@@ -233,5 +240,17 @@ public class StoreData
         totalTime = _totalTime;
     }
 }
+[Serializable]
+public class SessionData
+{
+   public List<StoreData> data;
+    public float InitialTime;
+    public float TotalDuration;
+    
+}
+
+
+
+
 
 
